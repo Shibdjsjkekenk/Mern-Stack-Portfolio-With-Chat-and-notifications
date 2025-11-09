@@ -4,11 +4,15 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  base: "./", // ✅ VERY important for Netlify build
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "./", // ✅ ensure relative asset paths for Netlify
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+  },
 });
