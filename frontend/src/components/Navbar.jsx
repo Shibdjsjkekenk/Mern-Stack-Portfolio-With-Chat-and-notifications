@@ -187,7 +187,7 @@ const Navbar = () => {
                     <a href="#services" className="block px-4 py-2 text-black font-bold hover:bg-gray-200">
                         Services
                     </a>
-                    <a href="/" className="block px-4 py-2 text-black font-bold hover:bg-gray-200">
+                    <a href="contact-us" className="block px-4 py-2 text-black font-bold hover:bg-gray-200">
                         Contact Us
                     </a>
                 </div>
