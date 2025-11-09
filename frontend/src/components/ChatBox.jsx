@@ -157,7 +157,7 @@ const ChatInput = memo(({ value, setValue, onSend, messages, user }) => {
         <button
           onClick={handleAskAI}
           title="Ask AI for suggestions"
-          className="absolute -top-17 right-2 w-9 h-9 rounded-full cursor-pointer border border-[#d4afd6] shadow-lg bg-gradient-to-br from-[#ffd607] via-[#ff7eb9] to-[#ffd607] animate-bling"
+          className="absolute -top-17 p-2 right-2 w-9 h-9 rounded-full cursor-pointer border border-[#d4afd6] shadow-lg bg-gradient-to-br from-[#ffd607] via-[#ff7eb9] to-[#ffd607] animate-bling"
         >
           <Brain className="text-pink-600 animate-spin-slow" size={18} />
         </button>

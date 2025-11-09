@@ -3,6 +3,7 @@ import Footerbg from "../assets/footer-bg.jpeg";
 import WhatsApp from "../assets/whatsapp-icon.png";
 import { FaComments } from "react-icons/fa";
 import ChatBox from "../components/ChatBox";
+import Tchat from "../assets/tchat.png";
 
 const Footer = () => {
   const [showChat, setShowChat] = useState(false);
@@ -11,7 +12,7 @@ const Footer = () => {
   return (
     <>
       {/* WhatsApp Floating Button */}
-      <a
+      {/* <a
         href="https://wa.me/918779597022"
         target="_blank"
         rel="noopener noreferrer"
@@ -22,19 +23,23 @@ const Footer = () => {
           alt="WhatsApp"
           className="w-12 h-12 hover:shadow-xl transition-shadow duration-300"
         />
-      </a>
+      </a> */}
 
       {/* Chat Icon Floating Button */}
       <button
         onClick={() => setShowChat((p) => !p)}
-        className="fixed bottom-24 right-4 z-50 bg-[#0060AF] text-white rounded-full p-3 shadow-xl hover:scale-110 transition-transform duration-300"
+        className="fixed bottom-15 border border-gray-300 right-4 z-50 bg-white rounded-full shadow-xl hover:scale-110 transition-transform duration-300"
       >
-        <FaComments className="w-6 h-6" />
+      <img
+          src={Tchat}
+          alt="WhatsApp"
+          className="w-17 h-17 transition-shadow duration-300"
+        />
       </button>
 
       {/* ChatBox Modal */}
       {showChat && (
-        <div className="fixed bottom-24 right-4 w-80 h-96 bg-[#0f172a] text-white shadow-2xl rounded-xl border border-gray-700 overflow-hidden z-50">
+        <div className="fixed bottom-15 right-4 w-80 h-96 bg-[#0f172a] text-white shadow-2xl rounded-xl border border-gray-700 overflow-hidden z-50">
           <ChatBox onClose={() => setShowChat(false)} />
         </div>
       )}

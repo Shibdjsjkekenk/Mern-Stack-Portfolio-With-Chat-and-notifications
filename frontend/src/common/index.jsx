@@ -1,5 +1,5 @@
-export const backendDomin = "http://localhost:8080";
-// const backendDomin = import.meta.env.VITE_BACKEND_URL;
+// export const backendDomin = "http://localhost:8080";
+const backendDomin = import.meta.env.VITE_BACKEND_URL;
 
 // ✅ Get Authorization headers safely
 export const getAuthHeaders = () => {
