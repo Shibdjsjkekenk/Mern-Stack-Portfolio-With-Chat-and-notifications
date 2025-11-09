@@ -10,5 +10,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "./", // ✅ ensures relative asset paths
+  base: "./", // ✅ ensure relative asset paths for Netlify
 });
