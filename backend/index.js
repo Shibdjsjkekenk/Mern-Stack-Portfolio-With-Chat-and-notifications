@@ -17,11 +17,24 @@ const server = http.createServer(app);
 const { initSocket } = require("./controller/socket/initSocket");
 
 // =====================================================
-// ✅ STABLE & SAFE CORS CONFIG (no path-to-regexp bug)
+// ✅ 1️⃣ STABLE & FLEXIBLE CORS CONFIG (Render + Netlify)
 // =====================================================
+const allowedOrigins = [
+  "https://mern-portfolio-with-chat.netlify.app", // ✅ Your Netlify frontend
+  "http://localhost:5173",                        // ✅ Local development
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -29,38 +42,38 @@ app.use(
 );
 
 // =====================================================
-// Middleware
+// ✅ 2️⃣ MIDDLEWARES
 // =====================================================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Serve all uploaded images (including nested folders like /profiles)
+// Serve uploaded images safely
 app.use("/uploads", express.static(path.resolve(__dirname, "uploads")));
 
 // =====================================================
-// Routes
+// ✅ ROUTES
 // =====================================================
 app.use("/api", router);
 app.use("/api/auth", chatAuthRoutes);
 app.use("/api/chat", chatRoutes);
 
 // =====================================================
-// Initialize Socket
+// ✅ SOCKET INITIALIZATION
 // =====================================================
 initSocket(server);
 
 // =====================================================
-// Start Server + DB
+// ✅ SERVER + DATABASE START
 // =====================================================
 const PORT = process.env.PORT || 8080;
+
 connectDB()
   .then(() => {
     server.listen(PORT, () => {
       console.log("✅ MongoDB Connected");
-      console.log("🚀 Server running on port " + PORT);
-      console.log("📂 Serving uploads from:", path.resolve(__dirname, "uploads"));
-      console.log("🌍 Allowed Origin:", process.env.FRONTEND_URL || "http://localhost:5173");
+      console.log("🚀 Server running on port", PORT);
+      console.log("🌍 Allowed Origins:", allowedOrigins.join(", "));
     });
   })
   .catch((err) => console.error("❌ DB connection failed:", err));
