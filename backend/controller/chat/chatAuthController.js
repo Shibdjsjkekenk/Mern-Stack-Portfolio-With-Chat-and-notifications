@@ -8,77 +8,49 @@ const nodemailer = require("nodemailer");
 const fs = require("fs").promises;
 const path = require("path");
 const { io } = require("../socket/initSocket"); // ✅ import socket instance
+const axios = require("axios");
 
 // --------------------- HELPER: SEND OTP VIA EMAIL ---------------------
 const sendOtpEmailHelper = async (email, otp) => {
   try {
-    console.log("📧 Sending OTP to:", email);
+    console.log("📧 Sending OTP via Brevo API to:", email);
 
-    // ✅ Proper Brevo SMTP Configuration
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || "smtp-relay.brevo.com",
-      port: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : 587,
-      secure: false, // TLS (not SSL)
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      tls: { rejectUnauthorized: false },
-      connectionTimeout: 15000,
-    });
-
-    // ✅ Clean professional HTML template
-    const emailTemplate = `
-      <div style="background-color:#f5f7fa; padding:40px 0; font-family:'Segoe UI',Arial,sans-serif;">
-        <div style="max-width:520px; margin:auto; background:#ffffff; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1); padding:30px;">
-          
-          <div style="text-align:center; border-bottom:2px solid #4CAF50; padding-bottom:12px;">
-            <h2 style="color:#222; margin:0;">T'Chat App</h2>
-            <p style="font-size:13px; color:#666;">Secure OTP Verification</p>
-          </div>
-
-          <div style="text-align:center; padding:25px 10px;">
-            <h3 style="color:#222; margin:0;">Hello 👋</h3>
-            <p style="color:#555; font-size:15px;">Your one-time password (OTP) for login is:</p>
-            
-            <div style="font-size:36px; color:#4CAF50; font-weight:bold; letter-spacing:6px; margin:20px 0;">
-              ${otp}
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: { name: "T'Chat App", email: "info@shubhanshutiwari.com" },
+        to: [{ email }],
+        subject: "🔐 OTP Verification",
+        htmlContent: `
+          <div style="background:#f8f9fa;padding:40px;font-family:Arial,sans-serif;color:#333;">
+            <div style="max-width:500px;margin:auto;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);padding:25px;">
+              <h2 style="color:#4CAF50;text-align:center;">T'Chat App</h2>
+              <p style="font-size:15px;text-align:center;">Hello 👋,</p>
+              <p>Your one-time password (OTP) for login is:</p>
+              <h1 style="color:#4CAF50;letter-spacing:5px;text-align:center;">${otp}</h1>
+              <p style="text-align:center;font-size:14px;">This code will expire in <b>5 minutes</b>.</p>
+              <p style="font-size:13px;color:#777;">If you didn’t request this, please ignore this email.</p>
+              <div style="border-top:1px solid #eee;text-align:center;padding-top:10px;font-size:12px;color:#999;">
+                © ${new Date().getFullYear()} T'Chat App
+              </div>
             </div>
-
-            <p style="color:#555; font-size:14px;">This code will expire in <b>5 minutes</b>.</p>
-            <p style="color:#999; font-size:13px;">If you didn’t request this, you can safely ignore this email.</p>
           </div>
+        `,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": process.env.BREVO_API_KEY,
+        },
+      }
+    );
 
-          <div style="text-align:center; border-top:1px solid #eee; padding-top:12px; font-size:12px; color:#888;">
-            © ${new Date().getFullYear()} T'Chat App. All rights reserved.
-          </div>
-        </div>
-      </div>
-    `;
-
-    // ✅ Send the email
-    const info = await transporter.sendMail({
-      from: `"T'Chat App" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "🔐 Your One-Time Password (OTP) | T'Chat App",
-      html: emailTemplate,
-    });
-
-    console.log("✅ OTP Email sent successfully:", info.response);
+    console.log("✅ OTP Email sent successfully via Brevo API:", response.status);
   } catch (err) {
-    console.error("❌ OTP Send Error:", err.message);
-
-    // Better debugging for common issues
-    if (err.code === "EAUTH") {
-      console.error("❌ Invalid Brevo credentials: check EMAIL_USER / EMAIL_PASS in .env");
-    } else if (err.code === "ECONNECTION" || err.code === "ETIMEDOUT") {
-      console.error("⚠️ SMTP Connection Timeout — Render or hosting may block external SMTP ports.");
-    }
-
-    throw new Error("Failed to send OTP email — please verify SMTP credentials or host accessibility.");
+    console.error("❌ Brevo API Send Error:", err.response?.data || err.message);
+    throw new Error("Failed to send OTP email — Brevo API failed.");
   }
 };
-
 
 // --------------------- HELPER: SAVE BASE64 IMAGE ---------------------
 const saveBase64Image = async (base64String) => {
