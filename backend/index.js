@@ -20,7 +20,7 @@ const { initSocket } = require("./controller/socket/initSocket");
 // ✅ 1️⃣ STABLE & FLEXIBLE CORS CONFIG (Render + Netlify)
 // =====================================================
 const allowedOrigins = [
-  "https://mern-portfolio-with-chat.netlify.app", // ✅ Your Netlify frontend
+  "https://shubhanshutiwari.com", // ✅ Your Netlify frontend
   "http://localhost:5173",                        // ✅ Local development
 ];
 
