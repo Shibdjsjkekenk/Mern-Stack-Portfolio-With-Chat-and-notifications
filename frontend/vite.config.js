@@ -1,17 +1,15 @@
+import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import tailwindcss from "@tailwindcss/vite";
 
+// ✅ Correct config for Netlify (relative assets)
 export default defineConfig({
-  plugins: [react()],
-  base: "./", // ✅ THIS IS THE FIX FOR NETLIFY
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    outDir: "dist",
-    assetsDir: "assets",
-  },
+  base: "./", // <---- CRUCIAL LINE FOR NETLIFY DEPLOYMENT
 });
