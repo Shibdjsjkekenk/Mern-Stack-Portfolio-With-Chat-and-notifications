@@ -4,14 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
+  base: './', // ✅ This is critical for Netlify static serving
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
-  build: {
-    outDir: 'dist',
-  },
-  base: './', // ⚠️ This line is critical for Netlify
 })
