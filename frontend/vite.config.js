@@ -1,17 +1,17 @@
-import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
+  base: "./", // ✅ THIS IS THE FIX FOR NETLIFY
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
-    outDir: "dist", // ✅ ensures the build output goes to 'dist'
+    outDir: "dist",
+    assetsDir: "assets",
   },
-  base: "./", // ✅ this fixes the MIME type issue (relative paths for assets)
 });
