@@ -4,7 +4,7 @@ import { FaCloudUploadAlt } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import axios from "axios";
-import imageToBase64 from "../helpers/imageToBase64";
+import imageToBase64 from "../helpers/imageTobase64";
 import SummaryApi, { getAuthHeaders } from "../common";
 
 const ExpUploadProject = ({
