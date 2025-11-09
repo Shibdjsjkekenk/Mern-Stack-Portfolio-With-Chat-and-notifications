@@ -3,79 +3,79 @@ const userModel = require("../../models/userModel");
 const jwt = require("jsonwebtoken");
 const os = require("os");
 const axios = require("axios");
-const { io } = require("../socket/initSocket"); // ✅ socket instance import
+const { io } = require("../socket/initSocket");
 
+// =======================================================
+// 🟢 USER SIGN-IN CONTROLLER (Render + Local Compatible)
+// =======================================================
 async function userSignInController(req, res) {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) throw new Error("Email & Password required");
 
+    // ✅ Find user
     const user = await userModel.findOne({ email });
     if (!user) throw new Error("User not found");
 
+    // ✅ Validate password
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword) throw new Error("Incorrect password");
 
+    // ✅ Get system/device name
     const deviceName = os.hostname();
 
-    // get IP address (handle proxies)
+    // ✅ Get real client IP
     let ipAddress =
-      req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
+      req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+      req.socket.remoteAddress ||
+      "Unknown";
 
-    // normalize IPv4 if present
-    if (typeof ipAddress === "string" && ipAddress.includes("::ffff:")) {
-      ipAddress = ipAddress.split("::ffff:").pop();
-    }
+    // Normalize IPv4 if includes "::ffff:"
+    if (ipAddress.includes("::ffff:")) ipAddress = ipAddress.replace("::ffff:", "");
 
-    // detect local IP
+    // ✅ Check if local
     const isLocal =
-      ipAddress === "::1" ||
       ipAddress === "127.0.0.1" ||
+      ipAddress === "::1" ||
       ipAddress === "Unknown";
 
-    if (!Array.isArray(user.logins)) user.logins = [];
-
-    // default location values
+    // Default location values
     let city = "Unknown",
       state = "Unknown",
       country = "Unknown",
       latitude = null,
       longitude = null;
 
+    // ✅ Fetch Geo info (works both local + Render)
     if (!isLocal) {
       try {
-        const geoRes = await axios.get(
-          `http://ip-api.com/json/${ipAddress}?fields=status,message,country,regionName,city,lat,lon,query`
-        );
+        const geoRes = await axios.get(`https://ipapi.co/${ipAddress}/json/`);
         const geo = geoRes.data;
 
-        if (geo && geo.status === "success") {
+        if (geo && !geo.error) {
           city = geo.city || "Unknown";
-          state = geo.regionName || "Unknown";
-          country = geo.country || "Unknown";
-          latitude = geo.lat || null;
-          longitude = geo.lon || null;
+          state = geo.region || "Unknown";
+          country = geo.country_name || "Unknown";
+          latitude = geo.latitude || null;
+          longitude = geo.longitude || null;
         }
 
-        // fallback: OpenStreetMap geocoding if lat/lon not available
+        // Fallback (OpenStreetMap)
         if ((latitude === null || longitude === null) && city !== "Unknown") {
-          const osmRes = await axios.get(
-            "https://nominatim.openstreetmap.org/search",
-            {
-              params: { format: "json", q: `${city}, ${state}, ${country}` },
-            }
-          );
+          const osmRes = await axios.get("https://nominatim.openstreetmap.org/search", {
+            params: { format: "json", q: `${city}, ${state}, ${country}` },
+          });
           if (osmRes.data.length > 0) {
             latitude = parseFloat(osmRes.data[0].lat);
             longitude = parseFloat(osmRes.data[0].lon);
           }
         }
       } catch (geoErr) {
-        console.error("Geo lookup error:", geoErr.message || geoErr);
+        console.error("🌍 Geo lookup error:", geoErr.message || geoErr);
       }
     } else {
-      // local fallback (Mumbai coordinates)
+      // Local fallback (Mumbai)
       city = "Local";
       state = "Local";
       country = "Local";
@@ -83,10 +83,10 @@ async function userSignInController(req, res) {
       longitude = 72.8777;
     }
 
-    // increment login count
+    // ✅ Track login history
+    if (!Array.isArray(user.logins)) user.logins = [];
     user.loginCount = (user.loginCount || 0) + 1;
 
-    // push login record
     user.logins.push({
       deviceName,
       ipAddress,
@@ -98,11 +98,11 @@ async function userSignInController(req, res) {
       loggedInAt: new Date(),
     });
 
-    // ✅ Mark admin online (presence update)
+    // ✅ Update status & save
     user.isOnline = true;
     await user.save();
 
-    // ✅ Send real-time status to all ChatUsers
+    // ✅ Real-time socket broadcast
     if (io()) {
       io().emit("admin_status", {
         adminId: user._id.toString(),
@@ -111,19 +111,19 @@ async function userSignInController(req, res) {
       console.log("📢 Admin online broadcasted via socket");
     }
 
-    // ✅ Create JWT
+    // ✅ Generate JWT
     const tokenData = { _id: user._id, email: user.email, role: user.role };
     const token = jwt.sign(tokenData, process.env.TOKEN_SECRET_KEY, {
       expiresIn: "7d",
     });
 
-    // ✅ Send cookie with proper cross-origin config
+    // ✅ Send cookie securely
     res
       .cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // ✅ for HTTPS on Render
-        sameSite: "None", // ✅ required for cross-domain (frontend ↔ backend)
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "None",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .status(200)
       .json({
@@ -144,7 +144,7 @@ async function userSignInController(req, res) {
         error: false,
       });
   } catch (err) {
-    console.error("Signin error:", err);
+    console.error("❌ Signin error:", err.message || err);
     res
       .status(400)
       .json({ message: err.message || err, error: true, success: false });
