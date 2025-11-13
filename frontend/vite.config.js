@@ -4,11 +4,25 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
-  base: './', // ✅ This is critical for Netlify static serving
+  base: './',  // ✅ Netlify + Vite Static Build fix (critical)
+
   plugins: [react(), tailwindcss()],
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    rollupOptions: {
+      output: {
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]"
+      }
+    }
+  }
 })
