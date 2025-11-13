@@ -2,22 +2,13 @@
   command = "npm run build"
   publish = "dist"
 
-# React Router fix (keeps routes working on refresh)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# JS MIME type fix (prevents "text/html" error)
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Content-Type = "application/javascript; charset=utf-8"
     Cache-Control = "public, max-age=31536000, immutable"
-
-# Optional: Serve index.html as proper HTML
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Type = "text/html; charset=UTF-8"
-    Cache-Control = "public, max-age=0, must-revalidate"
